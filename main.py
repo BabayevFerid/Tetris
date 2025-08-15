@@ -1,11 +1,4 @@
 
----
-
-## **2. Next Piece Preview, Səviyyə və Musiqi əlavə edilmiş kod (main.py)**
-
-Aşağıdakı kod `main.py` üçün dəyişdirilmiş versiyadır:
-
-```python
 import pygame, random
 from constants import WIDTH, HEIGHT, BLOCK_SIZE, ROWS, COLS
 from pieces import Piece, get_shape
