@@ -1,10 +1,24 @@
+
+---
+
+## **2. Next Piece Preview, Səviyyə və Musiqi əlavə edilmiş kod (main.py)**
+
+Aşağıdakı kod `main.py` üçün dəyişdirilmiş versiyadır:
+
+```python
 import pygame, random
-from constants import WIDTH, HEIGHT, BLOCK_SIZE
+from constants import WIDTH, HEIGHT, BLOCK_SIZE, ROWS, COLS
 from pieces import Piece, get_shape
 from grid import create_grid, valid_space, clear_rows, check_lost
 from draw import draw_window
 
 pygame.init()
+pygame.mixer.init()
+
+# Musiqi və səs
+pygame.mixer.music.load('assets/theme.mp3')
+pygame.mixer.music.play(-1)
+clear_sound = pygame.mixer.Sound('assets/clear.wav')
 
 def convert_shape_format(piece):
     positions = []
@@ -14,8 +28,17 @@ def convert_shape_format(piece):
                 positions.append((piece.x + j, piece.y + i))
     return positions
 
+def draw_next_piece(surface, piece):
+    font = pygame.font.SysFont('comicsans', 20)
+    label = font.render("Next:", True, (255,255,255))
+    surface.blit(label, (WIDTH + 10, 30))
+    for i, row in enumerate(piece.shape):
+        for j, val in enumerate(row):
+            if val:
+                pygame.draw.rect(surface, piece.color, (WIDTH + 10 + j*BLOCK_SIZE, 50 + i*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
+
 def main():
-    screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    screen = pygame.display.set_mode((WIDTH+150, HEIGHT))
     pygame.display.set_caption("Tetris")
     clock = pygame.time.Clock()
     fall_time = 0
@@ -26,6 +49,8 @@ def main():
     next_piece = get_shape()
     run = True
     score = 0
+    level = 1
+    lines_cleared = 0
 
     while run:
         grid = create_grid(locked_positions)
@@ -38,7 +63,15 @@ def main():
                 current_piece.y -= 1
                 for pos in convert_shape_format(current_piece):
                     locked_positions[pos] = current_piece.color
-                score += clear_rows(grid, locked_positions) * 10
+                cleared = clear_rows(grid, locked_positions)
+                if cleared > 0:
+                    score += cleared * 10
+                    lines_cleared += cleared
+                    clear_sound.play()
+                    # Səviyyə artır
+                    if lines_cleared >= level * 5:
+                        level += 1
+                        fall_speed *= 0.8
                 current_piece = next_piece
                 next_piece = get_shape()
                 if check_lost(locked_positions):
@@ -72,6 +105,8 @@ def main():
                 pygame.draw.rect(screen, current_piece.color, (x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE))
 
         draw_window(screen, grid, score)
+        draw_next_piece(screen, next_piece)
+        pygame.display.update()
 
     pygame.quit()
 
